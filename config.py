@@ -1,0 +1,4 @@
+FS_CLIENT_ID = '12999'
+FS_CLIENT_SECRET = 'c3c4b56b4b'
+FS_ACCESS_TOKEN = '8731f1ac3ec18b5ee4c97ea3acb2bb58'
+FS_REDIRECT_URI = 'formap.herokuapp.com'
