@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request
 from app import app
 import requests
 
@@ -12,5 +12,9 @@ def index():
 
 @app.route('/auth')
 def authorize():
-    r = requests.get('https://www.formstack.com/api/v2/oauth2/authorize?client_id=12999&redirect_uri=formmap.herokuapp.com&response_type=code')
+    r = requests.get('https://www.formstack.com/api/v2/oauth2/authorize?client_id=12999&redirect_uri=formmap.herokuapp.com/token&response_type=code')
     return r.text
+
+def token():
+    code = request.args.get('code')
+    return code
