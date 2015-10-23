@@ -19,5 +19,6 @@ def token():
     code = request.args.get('code')
     payload = {'client_id': 12999, 'client_secret': 'c3c4b56b4b', 'redirect_uri': 'http%3A%2F%2Fformmap.herokuapp.com%2Ftoken%2F', 'grant_type': 'authorization_code', 'code': str(code)}
     r = requests.post('https://www.formstack.com/api/v2/oauth2/token', data=payload)
-    return payload + "\t" + r.text
+    print payload
+    return r.text
     
