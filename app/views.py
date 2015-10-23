@@ -8,10 +8,12 @@ import json
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
+    data = {'nickname': 'Zim', 'access_token': ''}
     if 'access_token' in session:
-        return session['access_token']
-    user = {'nickname': 'Zim'}
-    return render_template('index.html', title='Home',user=user)
+        data['access_token'] = session['access_token']
+        return render_template('index.html', title='Home', user=data)
+    else:
+        return render_template('login.html')
 
 
 @app.route('/auth')
