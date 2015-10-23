@@ -21,7 +21,7 @@ def token():
     return "Authorized"
 
 @app.route('/authd', methods=['POST'])
-def authorized()
+def authorized():
     access_token = request.args.get('access_token')
     user_id = request.args.get('user_id')
     expires_in = request.args.get('expires_in')
