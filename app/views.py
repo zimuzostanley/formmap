@@ -1,6 +1,7 @@
 from flask import render_template, request, session, redirect, url_for
 from app import app
 import requests
+import ast
 
 
 @app.route('/')
@@ -22,6 +23,8 @@ def token():
     code = request.args.get('code')
     payload = {'client_id': 12999, 'client_secret': 'c3c4b56b4b', 'redirect_uri': 'http://formmap.herokuapp.com/token', 'grant_type': 'authorization_code', 'code': str(code)}
     r = requests.post('https://www.formstack.com/api/v2/oauth2/token', data=payload)
-    session['access_token'] = r.text.access_token
+    r = ast.literal_eval(r.text)
+    print r
+    session['access_token'] = r['access_token']
     return redirect(url_for('index'))
     
