@@ -60,12 +60,17 @@ def field(form_id, field_id):
         r = json.loads(r.text)
         options = []
         submissions = {}
+        colors = ["1f77b4", "ff7f0e", "2ca02c", "d62728", "9467bd", "8c564b", "e377c2", "7f7f7f", "bcbd22", "17becf"];
+        i = 0;
         for field in r:
             if field['id'] == field_id:
                 options = field['options']
                 break
         for option in options:
-            submissions[option['value']] = {'label': option['label'], 'value': option['value'], 'color': 'B1CFFE', 'data': []}
+            submissions[option['value']] = {'label': option['label'], 'value': option['value'], 'color': colors[i], 'data': []}
+            i += 1
+            if i == len(colors):
+                i = 0
 
         r = requests.get('https://www.formstack.com/api/v2/form/' + form_id + '/submission.json', headers=headers)
         r = json.loads(r.text)
