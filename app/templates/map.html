@@ -28,10 +28,14 @@
 var form_id;
 var field_id;
 
+
+
 // god object plus cache
 var form = {};
 
 var cur_markers = [];
+var cur_values = {};
+var cur_field;
 
 var map;
 function initMap() {
@@ -42,9 +46,11 @@ function initMap() {
 }
 
 var formClick = function(elem) {
-	cur_values = {};
-
 	form_id = elem.dataset.id;
+	if (form[form_id]) {
+		return;
+	}
+	
 	var ul = elem.nextElementSibling;
 	ul.innerHTML = "";
 	// Create many with ajax
@@ -52,6 +58,7 @@ var formClick = function(elem) {
 		if (!res['fields']) {
 			return;
 		}
+		form[form_id] = {};
 		for (var i in res['fields']) {
 			var li = document.createElement('li');
 			li.innerHTML = ""
@@ -63,6 +70,11 @@ var formClick = function(elem) {
 					cur_markers[i].setMap(null);
 				}
 				cur_markers = [];
+				if (cur_field) {
+					cur_field.style.background = "#FFFFFF";
+				}
+				cur_field = this;
+				cur_field.style.background = "#EEEEEE";
 				
 				field_id = this.dataset.id;
 				document.getElementById('form-check-ul').innerHTML = "";
@@ -72,16 +84,13 @@ var formClick = function(elem) {
 					document.getElementById('form-check-ul').appendChild(li);
 				}
 
-				if (form[form_id] && form[form_id][field_id]) {
+				if (form[form_id][field_id]) {
 					for (var i in form[form_id][field_id]) {
 						make_list(form[form_id][field_id][i]['value'])
 					}
 				}
 				else {
 					getJSON('/field/' + form_id + '/' + field_id, function(res) {
-						if (!form[form_id]) {
-							form[form_id] = {};
-						}
 						form[form_id][field_id] = res['submissions'];
 						for (var i in res['options']) {
 							make_list(res['options'][i]['value']);
@@ -99,7 +108,6 @@ var getJSON = function(url, cb) {
 	xhttp.open("GET", url, true);
 	xhttp.onreadystatechange = function() {
 		if (xhttp.readyState == 4 && xhttp.status == 200) {
-			console.log(xhttp.responseText);
 			cb(JSON.parse(xhttp.responseText));
 		}
 	}
