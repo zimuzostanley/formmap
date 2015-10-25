@@ -2,7 +2,7 @@
 
 {% block content %}
 {% for field in fields %}
-<a href="/field/{{ field.id }}" data-field-id="{{ field.id }}">{{ field.name }}</a>
+<a href="/field/{{ form_id}}/{{ field.id }}" data-field-id="{{ field.id }}">{{ field.name }}</a>
 {% endfor %}
 <br>
 <a href="/logout">Logout</a>

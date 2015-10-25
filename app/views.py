@@ -1,4 +1,4 @@
-from flask import render_template, request, session, redirect, url_for
+from flask import render_template, request, session, redirect, url_for, jsonify
 from app import app
 import requests
 import ast
@@ -10,12 +10,10 @@ import json
 def index():
     data = {'nickname': 'Zim', 'access_token': ''}
     if 'access_token' in session:
-        data['access_token'] = session['access_token']
         headers = {'Authorization': 'Bearer ' + session['access_token']}
         r = requests.get('https://www.formstack.com/api/v2/form.json', headers=headers)
         forms = json.loads(r.text)
-        print forms
-        return render_template('index.html', data=data, forms=forms['forms'])
+        return render_template('map.html', forms=forms['forms'])
     else:
         return render_template('login.html')
 
@@ -49,26 +47,43 @@ def fields(form_id):
         for field in r:
             if field['type'] == 'select' or field['type'] == 'radio':
                 fields.append(field)
-        return render_template('fields.html', fields=fields)
+        
+        return jsonify(**{'fields': fields})
     else:
         return render_template('login.html')
 
-@app.route('/field/<field_id>')
-def field(field_id):
+@app.route('/field/<form_id>/<field_id>')
+def field(form_id, field_id):
     if 'access_token' in session:
         headers = {'Authorization': 'Bearer ' + session['access_token']}
-        r = requests.get('https://www.formstack.com/api/v2/field/' + field_id + '.json', headers=headers)
-        print r.text
+        r = requests.get('https://www.formstack.com/api/v2/form/' + form_id + '/field.json', headers=headers)
         r = json.loads(r.text)
         options = []
-        print r['options']
-        for o in r['options']:
-            pass
-            #print o
-            #options.append(r['options'][o])
-            
-        return render_template('map.html', options=options)
+        submissions = {}
+        for field in r:
+            if field['id'] == field_id:
+                options = field['options']
+                break
+        for option in options:
+            submissions[option['value']] = {'label': option['label'], 'value': option['value'], 'color': 'B1CFFE', 'data': []}
+
+        r = requests.get('https://www.formstack.com/api/v2/form/' + form_id + '/submission.json', headers=headers)
+        r = json.loads(r.text)
+
+        r = r['submissions']
+        for submission in r:
+            if submission.get('longitude') and submission.get('latitude'):
+                q = requests.get('https://www.formstack.com/api/v2/submission/' + submission['id'] + '.json', headers=headers)
+                q = json.loads(q.text)
+                for d in q['data']:
+                    if d['field'] == field_id:
+                        submissions[d['value']]['data'].append({'id': submission['id'], 'lon': submission['longitude'], \
+                                                                'lat': submission['latitude']})
+                        break
+        _submissions = []
+        for key, value in submissions.iteritems():
+            _submissions.append(value)
+        return jsonify(**{'options': options, 'submissions': submissions})
     else:
         return render_template('login.html')
-
 

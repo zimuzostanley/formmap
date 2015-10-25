@@ -1,24 +1,155 @@
 {% extends "base.html" %}
 {% block content %}
 <a href="/logout">Logout</a>
-{% for option in options %}
-<a href="#" data-field-id="{{ option.id }}">{{ option.name }}</a>
-{% endfor %}
-
 <br>
-<div id="map"></div>
+<div id="form-radio">
+	<ul id="form-radio-ul">
+		{% for form in forms %}
+		<li>
+			<div>
+				<p class="form-name" onclick="formClick(this)" data-id="{{ form.id }}">{{ form.name }}</p>
+				<ul>
+				</ul>
+			</div>
+		</li>
+
+		{% endfor %}
+	</ul>
+
+</div>
+<div id="form-check">
+	<ul id="form-check-ul">
+	</ul>
+</div>
+<div id="map">
+</div>
 
 <script type="text/javascript">
+var form_id;
+var field_id;
+
+// god object plus cache
+var form = {};
+
+var cur_markers = [];
+
 var map;
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
-		center: {lat: -34.397, lng: 150.644},
-		zoom: 8
+		center: {lat: 3, lng: 9},
+		zoom: 5
 	});
 }
+
+var formClick = function(elem) {
+	cur_values = {};
+
+	form_id = elem.dataset.id;
+	var ul = elem.nextElementSibling;
+	ul.innerHTML = "";
+	// Create many with ajax
+	getJSON('/fields/' + form_id, function(res) {
+		if (!res['fields']) {
+			return;
+		}
+		for (var i in res['fields']) {
+			var li = document.createElement('li');
+			li.innerHTML = ""
+			li.appendChild(document.createTextNode(res['fields'][i]['name']));
+			li.dataset.id = res['fields'][i]['id'];
+			li.onclick = function() {
+				// Clear map
+				for (var i in cur_markers) {
+					cur_markers[i].setMap(null);
+				}
+				cur_markers = [];
+				
+				field_id = this.dataset.id;
+				document.getElementById('form-check-ul').innerHTML = "";
+				var make_list = function(value) {
+					var li = document.createElement('li');
+					li.innerHTML = '<label><input type="checkbox" onclick="updateMap(this)" value="' + value + '">' + value + '</label>'
+					document.getElementById('form-check-ul').appendChild(li);
+				}
+
+				if (form[form_id] && form[form_id][field_id]) {
+					for (var i in form[form_id][field_id]) {
+						make_list(form[form_id][field_id][i]['value'])
+					}
+				}
+				else {
+					getJSON('/field/' + form_id + '/' + field_id, function(res) {
+						if (!form[form_id]) {
+							form[form_id] = {};
+						}
+						form[form_id][field_id] = res['submissions'];
+						for (var i in res['options']) {
+							make_list(res['options'][i]['value']);
+						}
+					});
+				}
+			}
+			ul.appendChild(li);
+		}
+	});
+}
+
+var getJSON = function(url, cb) {
+	var xhttp = new XMLHttpRequest();
+	xhttp.open("GET", url, true);
+	xhttp.onreadystatechange = function() {
+		if (xhttp.readyState == 4 && xhttp.status == 200) {
+			console.log(xhttp.responseText);
+			cb(JSON.parse(xhttp.responseText));
+		}
+	}
+
+	xhttp.send();
+}
+
+var updateMap = function(elem) {
+	if (elem.checked) {
+		cur_values[elem.value] = true;
+	}
+	else {
+		delete cur_values[elem.value];
+	}
+	displayMap();
+
+}
+
+var displayMap = function() {
+	for (var i in cur_markers) {
+		cur_markers[i].setMap(null);
+	}
+	cur_markers = [];
+	var _form = form[form_id][field_id]
+	for (var i in _form) {
+		var a = cur_values[i];
+		if (a) {
+
+			var pin_image = new google.maps.MarkerImage("http://www.googlemapsmarkers.com/v1/" +  _form[i]['color']);
+			for (var j in _form[i]['data']) {
+				var lat_lng = {lat: parseFloat(_form[i]['data'][j]['lat']), lng: parseFloat(_form[i]['data'][j]['lon'])};
+				var marker = new google.maps.Marker({
+					position: lat_lng,
+					map: map,
+					icon: pin_image,
+					title: _form[i]['value']
+
+				});
+				cur_markers.push(marker);
+			}
+		}
+	}
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+	console.log('Document loaded');
+}, false);
 </script>
 
 <script async defer
-	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJX8yH1GYlgwu57rbb8xE_EbgD4tP_WwM&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDm1VN-uWlNLvtqLf2WcZdbQM2XXB_CEsU&callback=initMap">
 </script>
 {% endblock %}
