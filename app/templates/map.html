@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
-<a href="/logout">Logout</a>
-<br>
+<button id="logout-btn" onclick="window.location.href='/logout'">Logout</button>
+<h3>Forms</h3>
 <div id="form-radio">
 	<ul id="form-radio-ul">
 		{% for form in forms %}
@@ -40,9 +40,16 @@ var cur_field;
 var map;
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
-		center: {lat: 3, lng: 9},
+		center: {lat: 40, lng: -86},
 		zoom: 5
 	});
+
+	if (navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(function(position) {
+			map.setCenter(new google.maps.LatLng(position.coords.latitude, position.coords.longitude));
+		});
+	}
+
 }
 
 var formClick = function(elem) {
@@ -50,7 +57,7 @@ var formClick = function(elem) {
 	if (form[form_id]) {
 		return;
 	}
-	
+
 	var ul = elem.nextElementSibling;
 	ul.innerHTML = "";
 	// Create many with ajax
@@ -75,7 +82,7 @@ var formClick = function(elem) {
 				}
 				cur_field = this;
 				cur_field.style.background = "#EEEEEE";
-				
+
 				field_id = this.dataset.id;
 				document.getElementById('form-check-ul').innerHTML = "";
 				var make_list = function(value) {
@@ -158,6 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDm1VN-uWlNLvtqLf2WcZdbQM2XXB_CEsU&callback=initMap">
+	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDm1VN-uWlNLvtqLf2WcZdbQM2XXB_CEsU&callback=initMap">
 </script>
 {% endblock %}
