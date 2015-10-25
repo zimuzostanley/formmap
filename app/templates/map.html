@@ -37,6 +37,8 @@ var cur_markers = [];
 var cur_values = {};
 var cur_field;
 
+var count = {};
+
 var map;
 function initMap() {
 	map = new google.maps.Map(document.getElementById('map'), {
@@ -87,7 +89,7 @@ var formClick = function(elem) {
 				document.getElementById('form-check-ul').innerHTML = "";
 				var make_list = function(value) {
 					var li = document.createElement('li');
-					li.innerHTML = '<label><input type="checkbox" onclick="updateMap(this)" value="' + value + '">' + value + '</label>'
+					li.innerHTML = '<label><input type="checkbox" onclick="updateMap(this)" value="' + value + '">' + value + '</label>';
 					document.getElementById('form-check-ul').appendChild(li);
 				}
 
@@ -138,11 +140,12 @@ var displayMap = function() {
 		cur_markers[i].setMap(null);
 	}
 	cur_markers = [];
-	var _form = form[form_id][field_id]
+	var _form = form[form_id][field_id];
+	count = {};
 	for (var i in _form) {
 		var a = cur_values[i];
 		if (a) {
-
+			count[i] = _form[i]['data'].length;
 			var pin_image = new google.maps.MarkerImage("http://www.googlemapsmarkers.com/v1/" +  _form[i]['color']);
 			for (var j in _form[i]['data']) {
 				var lat_lng = {lat: parseFloat(_form[i]['data'][j]['lat']), lng: parseFloat(_form[i]['data'][j]['lon'])};
@@ -150,13 +153,14 @@ var displayMap = function() {
 					position: lat_lng,
 					map: map,
 					icon: pin_image,
-					title: _form[i]['value']
+					title: _form[i]['value'] + ' - ' + _form[i]['data'].length
 
 				});
 				cur_markers.push(marker);
 			}
 		}
 	}
+	console.log(count);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
